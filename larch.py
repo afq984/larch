@@ -135,7 +135,7 @@ def generate_mirrors(country='TW'):
             if line.startswith(b'#'):
                 line = line[1:]
             lines.append(line)
-    return ''.join(lines)
+    return b''.join(lines)
 
 
 def part(disk: str, partnum: int):
