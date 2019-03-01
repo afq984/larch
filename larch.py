@@ -205,7 +205,12 @@ def usb_main():
             run('mount', part(config.disk, 1), '/mnt/boot')
 
         step('Select the mirrors')
-        echo(generate_mirrors()) > '/etc/pacman.d/mirrorlist'
+        if config.mirrorlist == 'static':
+            echo(config.mirror_static) > '/etc/pacman.d/mirrorlist'
+        elif config.mirrorlist == 'generator':
+            echo(generate_mirrors()) > '/etc/pacman.d/mirrorlist'
+        else:
+            raise Exception(f'unsupported mirrorlist: {config.mirrorlist!r}')
 
         step('Install the base packages')
         run(

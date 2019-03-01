@@ -2,6 +2,17 @@
 Configuration file for larch, the lazy Arch Linux installer
 """
 
+# How to configure the mirrorlist
+# 'generator': fetch from the mirrorlist generator: https://www.archlinux.org/mirrorlist
+# 'static': use a static mirror configured by mirror_static
+mirrorlist = 'generator'
+
+# short country code, used by mirrorlist = 'generator'
+mirror_country = 'TW'
+
+# the single static mirror used by mirrorlist = 'static'
+mirror_static = 'http://10.88.88.49/archlinux/$repo/os/$arch'
+
 # Disk to install Arch Linux on
 # The installer always creates a GPT (GUID Partition Table)
 # Two partitions will be created:
