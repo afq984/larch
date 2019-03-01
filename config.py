@@ -53,6 +53,11 @@ services = [
 # We need efibootmgr for UEFI GRUB
 if use_uefi:
     packages.append('efibootmgr')
+# corresponding filesystem tools
+if root_filesystem == 'f2fs':
+    packages.append('f2fs-tools')
+if root_filesystem == 'btrfs':
+    packages.append('btrfs-progs')
 
 
 def post(step, echo, run, shell):
