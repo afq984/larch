@@ -272,10 +272,13 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--chroot', action='store_true')
     args = parser.parse_args()
-    if args.chroot:
-        chroot_main()
-    else:
-        usb_main()
+    try:
+        if args.chroot:
+            chroot_main()
+        else:
+            usb_main()
+    except CommandFailure as e:
+        raise SystemExit(str(e))
 
 
 if __name__ == '__main__':
