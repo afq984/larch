@@ -2,6 +2,7 @@ import subprocess
 import shlex
 import os
 import io
+import getpass
 import urllib.request
 import urllib.parse
 
@@ -71,7 +72,7 @@ def cmd_print(command: str):
     """
     prints the shlex.quoted command
     """
-    print('>', command)
+    print('#', command)
 
 
 def run(*args, check=True, **kwds):
@@ -115,6 +116,8 @@ def echo(what):
     useful to write a file, like:
     >>> echo('foo') > '/path/to/bar.txt'
     """
+    if '\n' not in what:
+        cmd_print(f'echo {shlex.quote(what)}')
     return CommandOutput(what + '\n')
 
 
@@ -158,6 +161,17 @@ def usb_main():
         raise SystemExit(1)
 
     assert config.disk != 'FIXME'
+
+    step('Configure root password')
+    if config.root_password is None:
+        while True:
+            pass0 = getpass.getpass('Set root password: ')
+            pass1 = getpass.getpass('Retype root password: ')
+            if pass0 == pass1:
+                break
+            print('Password mismatch! Retry...')
+    else:
+        pass0 = config.root_password
 
     if config.use_uefi:
         try:
@@ -206,13 +220,13 @@ def usb_main():
 
         step('Select the mirrors')
         if config.mirrorlist == 'static':
-            echo(config.mirror_static) > '/etc/pacman.d/mirrorlist'
+            echo(f'Server = {config.mirror_static}') > '/etc/pacman.d/mirrorlist'
         elif config.mirrorlist == 'generator':
             echo(generate_mirrors()) > '/etc/pacman.d/mirrorlist'
         else:
             raise Exception(f'unsupported mirrorlist: {config.mirrorlist!r}')
 
-        step('Install the base packages')
+        step('Install packages')
         run(
             'pacstrap',
             '/mnt',
@@ -228,12 +242,14 @@ def usb_main():
             echo(config.hostname) > '/mnt/etc/hostname'
 
         step('Chroot')
-        run('mount', '--bind', 'larch.py', '/mnt/root/larch.py')
-        run('mount', '--bind', 'config.py', '/mnt/root/config.py')
+        run('sed', "s/^root_password.*/root_password = None  # (filtered)/g", 'config.py') > '/mnt/root/config.py'
+        run('cp', 'larch.py', '/mnt/root/larch.py')
         shell(
-            f'arch-chroot /mnt python /root/install.py --chroot',
+            f'arch-chroot /mnt python -u /root/larch.py --chroot',
+            stdin=None,
             stdout=None,
             stderr=None,
+            env={'LARCH_ROOT_PASSWORD': pass0, **os.environ}
         )
     finally:
         step('Clean up')
@@ -242,8 +258,9 @@ def usb_main():
 
 def chroot_main():
     import config
+
     step('Time zone')
-    shell('ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime')
+    run('ln', '-sf', f'/usr/share/zoneinfo/{config.timezone}', '/etc/localtime')
 
     step('Locale')
     echo('LANG=en_US.UTF-8') > '/etc/locale.conf'
@@ -257,10 +274,10 @@ def chroot_main():
     shell('mkinitcpio -p linux')
 
     step('Root password')
-    if config.root_password is None:
-        run('passwd')
-    else:
-        run('chpasswd', input=f'root:{config.root_password}')
+    # we cannot use the root password from config.py here
+    # it is already filtered out
+    root_password = os.environ['LARCH_ROOT_PASSWORD']
+    run('chpasswd', input=f'root:{root_password}')
 
     step('Boot loader')
     if config.use_uefi:
@@ -274,6 +291,8 @@ def chroot_main():
             config.disk,
         )
     shell('grub-mkconfig -o /boot/grub/grub.cfg')
+
+    config.post_chroot(step, echo, run, shell)
 
 
 def main():

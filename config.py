@@ -38,11 +38,16 @@ root_filesystem = 'xfs'
 # Set to None to not set it
 hostname = None
 
+# Timezone
+timezone = 'Asia/Taipei'
+
 # Packages to install
+# base and python will always be installed (to run larch in the chroot)
 packages = [
     'base', 'base-devel', 'grub', 'python',
     'openssh', 'rsync', 'vim',
     'intel-ucode',
+    # 'amd-ucode',
 ]
 
 # Services to enable
@@ -60,12 +65,16 @@ if root_filesystem == 'btrfs':
     packages.append('btrfs-progs')
 
 
-def post(step, echo, run, shell):
+def post_chroot(step, echo, run, shell):
     """Post-installation steps (run in chroot)"""
-    step('Post-installation step (shell in chroot)')
-    run('bash', '-i')
 
-    # enable ssh server (useful for servers)
+    # interactive shell in chroot after installation
+    # comment this out to make it exit automatically
+    step('Post-installation step (shell in chroot)')
+    import pty
+    pty.spawn('bash')
+
+    # # enable ssh server (useful for server installations)
     # step('SSH Daemon')
     # echo('PermitRootLogin yes') >> '/etc/ssh/sshd_config'
     # shell('systemctl enable sshd')
