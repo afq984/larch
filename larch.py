@@ -132,7 +132,7 @@ def generate_mirrors(country='TW'):
     lines = []
     with urllib.request.urlopen(f'{path}?{qs}') as file:
         for line in file:
-            if line.startswith('#'):
+            if line.startswith(b'#'):
                 line = line[1:]
             lines.append(line)
     return ''.join(lines)
