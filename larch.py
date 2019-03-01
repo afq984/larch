@@ -125,13 +125,15 @@ def echo(what):
 
 def generate_mirrors(country='TW'):
     path = 'https://www.archlinux.org/mirrorlist'
-    qs = urllib.parse.urlencode({
-        'country': country,
-        'protocol': ['http', 'https'],
-        'ip_version': '4',
-    })
+    qs = urllib.parse.urlencode((
+        ('country', country),
+        ('protocol', 'http'),
+        ('protocol', 'https'),
+        ('ip_version', '4'),
+    ))
     lines = []
-    with urllib.request.urlopen(f'{path}?{qs}') as bfile:
+    url = f'{path}?{qs}'
+    with urllib.request.urlopen(url) as bfile:
         file = io.TextIOWrapper(bfile)
         for line in file:
             if line.startswith('#'):
