@@ -164,7 +164,7 @@ def usb_main():
                 'Please enable it or set USE_UEFI to False')
 
     step('Partition the disks')
-    if config.USE_UEFI:
+    if config.use_uefi:
         boot_typecode = 'ef00'
         boot_size = '1G'
     else:
