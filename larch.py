@@ -1,6 +1,7 @@
 import subprocess
 import shlex
 import os
+import io
 import urllib.request
 import urllib.parse
 
@@ -130,12 +131,13 @@ def generate_mirrors(country='TW'):
         'ip_version': '4',
     })
     lines = []
-    with urllib.request.urlopen(f'{path}?{qs}') as file:
+    with urllib.request.urlopen(f'{path}?{qs}') as bfile:
+        file = io.TextIOWrapper(bfile)
         for line in file:
-            if line.startswith(b'#'):
+            if line.startswith('#'):
                 line = line[1:]
             lines.append(line)
-    return b''.join(lines)
+    return ''.join(lines)
 
 
 def part(disk: str, partnum: int):
