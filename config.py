@@ -23,6 +23,10 @@ use_uefi = True
 # Supported choices are ext4, xfs, f2fs, btrfs
 root_filesystem = 'xfs'
 
+# Hostname
+# Set to None to not set it
+hostname = None
+
 # Packages to install
 packages = [
     'base', 'base-devel', 'grub', 'python',
@@ -30,18 +34,14 @@ packages = [
     'intel-ucode',
 ]
 
-# We need efibootmgr for UEFI GRUB
-if use_uefi:
-    packages.append('efibootmgr')
-
 # Services to enable
 services = [
     'systemd-timesyncd',
 ]
 
-# Hostname
-# Set to None to not set it
-hostname = None
+# We need efibootmgr for UEFI GRUB
+if use_uefi:
+    packages.append('efibootmgr')
 
 
 def post(step, echo, run, shell):
